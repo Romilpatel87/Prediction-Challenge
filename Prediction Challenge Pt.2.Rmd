@@ -1,0 +1,173 @@
+---
+title: "Prediction Challenge Pt.2"
+output: html_document
+date: "2024-02-16"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+# Load necessary libraries
+library(dplyr)
+library(ggplot2)
+library(leaflet)
+library(sf)
+library(randomForest)
+library(caret)
+
+# Load and prepare the datasets
+Airbnb <- read.csv("predictionChallenge.csv", header = TRUE)
+POI <- read.csv("Point_Of_interest.csv", header = TRUE)
+Updated_Airbnb <- read.csv("Updated_Airbnb.csv", header = TRUE)
+
+# Convert the_geom in POI to longitude and latitude
+POI <- POI %>%
+  mutate(
+    longitude = as.numeric(sub("POINT \\(([^ ]+) .*", "\\1", the_geom)),
+    latitude = as.numeric(sub(".* ([^ ]+)\\)", "\\1", the_geom))
+  ) %>%
+  select(-the_geom)
+
+# Convert Airbnb and POI data frames to sf objects
+Airbnb_sf <- st_as_sf(Airbnb, coords = c("longitude", "latitude"), crs = 4326)
+POI_sf <- st_as_sf(POI, coords = c("longitude", "latitude"), crs = 4326)
+
+# Perform nearest neighbor search and calculate distances
+nearest_poi_index <- st_nearest_feature(Airbnb_sf, POI_sf)
+nearest_distances_meters <- st_distance(Airbnb_sf, POI_sf[nearest_poi_index, ], by_element = TRUE)
+Airbnb$distance_to_nearest_poi_miles <- as.numeric(units::set_units(nearest_distances_meters, "mi"))
+
+head(POI)
+head(Airbnb)
+head(Updated_Airbnb)
+```
+
+
+```{r}
+# Proximity Score Calculation (simplistic version)
+calculate_proximity_score <- function(distance) {
+  # Assuming a simple inverse relationship - closer is better
+  max_distance = max(Updated_Airbnb$distance_to_nearest_poi_miles, na.rm = TRUE)
+  return(1 - (distance / max_distance))
+}
+
+# Attractiveness Index Calculation
+calculate_attractiveness_index <- function(review_score, number_of_reviews) {
+  # Example: Simple weighted average of the two
+  return(0.6 * review_score + 0.4 * (number_of_reviews / max(Updated_Airbnb$number_of_reviews, na.rm = TRUE)))
+}
+
+# Demand-Supply Ratio Calculation
+calculate_demand_supply_ratio <- function(neighbourhood) {
+  # Placeholder for actual calculation
+  # This could be a complex function based on the data
+  return(runif(1, 0, 1)) # Random number for now
+}
+
+# Seasonal Adjustment Calculation
+calculate_seasonal_adjustment <- function(last_review_date) {
+  # Placeholder for actual calculation
+  # Could be based on extracting the month and categorizing into seasons
+  return(runif(1, 0, 1)) # Random number for now
+}
+
+# Apply these functions to create new columns
+Updated_Airbnb$proximity_score <- sapply(Airbnb$distance_to_nearest_poi_miles, calculate_proximity_score)
+Updated_Airbnb$attractiveness_index <- mapply(calculate_attractiveness_index, Airbnb$mean_review_score, Airbnb$number_of_reviews)
+Updated_Airbnb$demand_supply_ratio <- sapply(Airbnb$neighbourhood, calculate_demand_supply_ratio)
+Updated_Airbnb$seasonal_adjustment <- sapply(Airbnb$last_review, calculate_seasonal_adjustment)
+```
+
+```{r}
+# Convert 'Deal.Quality' to a binary variable
+Airbnb$Deal_Quality_Binary <- ifelse(Airbnb$Deal.Quality == "Good", 1, 0)
+
+# Then, you can use logistic regression
+binary_model <- glm(Deal_Quality_Binary ~ number_of_bedrooms * proximity_score +
+                    attractiveness_index * demand_supply_ratio +
+                    seasonal_adjustment + is_manhattan,
+                    family = binomial(link = "logit"),
+                    data = Updated_Airbnb)
+
+summary(binary_model)
+```
+
+```{r}
+# Write the updated Airbnb dataframe to a new CSV file
+write.csv(Airbnb, "Updated_Airbnb.csv", row.names = FALSE)
+```
+
+```{r}
+ggplot(Updated_Airbnb, aes(x = proximity_score, y = `Price...`, color = as.factor(Deal_Quality_Binary))) +
+  geom_point(alpha = 0.6) +
+  scale_color_manual(values = c("1" = "blue", "0" = "red")) +
+  labs(title = "Price vs. Proximity Score by Deal Quality",
+       x = "Proximity Score",
+       y = "Price",
+       color = "Deal Quality") +
+  theme_minimal()
+```
+
+```{r}
+ggplot(Updated_Airbnb, aes(x = neighbourhood.group, y = attractiveness_index)) +
+  geom_boxplot(aes(fill = neighbourhood.group)) +
+  labs(title = "Attractiveness Index Across Neighborhoods",
+       x = "Neighborhood Group",
+       y = "Attractiveness Index") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r}
+ggplot(Updated_Airbnb, aes(x = neighbourhood.group, y = demand_supply_ratio, fill = neighbourhood.group)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Demand-Supply Ratio by Neighbourhood Group",
+       x = "Neighbourhood Group",
+       y = "Demand-Supply Ratio") +
+  theme_minimal()
+```
+
+```{r}
+# Now create your plot
+ggplot(data = Updated_Airbnb, aes(x = seasonal_adjustment, y = reviews_per_month)) +
+  geom_point(alpha = 0.6) +
+  labs(title = "Seasonal Adjustment Throughout the Year",
+       x = "Seasonal Adjustment",
+       y = "Reviews Per Month") +
+  theme_minimal() +
+  scale_color_brewer(palette = "Spectral")
+```
+
+```{r}
+ggplot(Updated_Airbnb, aes(x = number_of_bedrooms, fill = as.factor(Deal_Quality_Binary))) +
+  geom_histogram(binwidth = 1, position = "dodge") +
+  scale_fill_manual(values = c("1" = "blue", "0" = "red")) +
+  labs(title = "Number of Bedrooms vs. Deal Quality",
+       x = "Number of Bedrooms",
+       y = "Count",
+       fill = "Deal Quality") +
+  theme_minimal()
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
