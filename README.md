@@ -41,6 +41,12 @@ The project is divided into two parts:
 - `Prediction Challenge Pt.1.pdf`: Detailed report for the first part of the project.
 - `Prediction Challenge Pt.2.pdf`: Comprehensive report for the custom prediction challenge.
 
+### PPT (Presentation)
+- `ppt/`: Folder containing PowerPoint presentations for the project.
+
+### Rstudio Code (Code for Development)
+- `Rstudio_code/`: Folder containing additional studio code files related to the project.
+
 ## How to Use
 
 ### Run the Analysis
