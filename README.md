@@ -28,9 +28,35 @@ The project is divided into two parts:
 
 ## Files in This Repository
 
-- `Updated_Airbnb.csv`: Dataset with added features and derived attributes used in the analysis.
-- `Attractions.csv`: Supplementary data for proximity-related features.
+### Data
+- `data/predictionChallenge.csv`: Dataset used for the first part of the project.
+- `data/Attractions.csv`: Supplementary data for proximity-related features.
+- `data/Updated_Airbnb.csv`: Dataset with added features and derived attributes used in the analysis.
+
+### Code and Reports
 - `PredictionChallenge.Rmd`: R Markdown file containing the analysis and code for Part 1.
 - `Prediction Challenge Pt.2.Rmd`: R Markdown file containing the analysis and code for Part 2.
+
+### Reports
 - `Prediction Challenge Pt.1.pdf`: Detailed report for the first part of the project.
 - `Prediction Challenge Pt.2.pdf`: Comprehensive report for the custom prediction challenge.
+
+## How to Use
+
+### Run the Analysis
+- **For Part 1**: Open and run `PredictionChallenge.Rmd` in RStudio.
+- **For Part 2**: Open and run `Prediction Challenge Pt.2.Rmd` in RStudio.
+
+### Explore the Reports
+- `Prediction Challenge Pt.1.pdf` and `Prediction Challenge Pt.2.pdf` contain detailed explanations, visualizations, and results.
+
+## Key Insights
+
+- Listings closer to attractions with higher attractiveness indices tend to have better deal quality.
+- The Random Forest model achieved superior accuracy compared to Logistic Regression.
+- Sophisticated feature engineering and pattern design significantly improve prediction accuracy.
+
+## Acknowledgments
+
+- Dataset sourced from [Kaggle: New York City Airbnb Open Data](https://www.kaggle.com/datasets/dgomonov/new-york-city-airbnb-open-data).
+- The work is purely for educational purposes, showcasing feature engineering, modeling, and analysis.
